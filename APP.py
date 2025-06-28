@@ -22,7 +22,21 @@ def take_attendance():
     if not name:
         print("⚠️ No face recognized.")
         return
+     today = datetime.now().strftime("%Y-%m-%d")
 
+    # Step 1: Check if today's attendance for this name already exists
+    already_marked = False
+    if os.path.exists(attd_file):
+        with open(attd_file, mode='r', newline='') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["Name"] == name and row["Date"] == today:
+                    already_marked = True
+                    break
+
+    if already_marked:
+        print(f"⚠️ Attendance already marked for {name} today.")
+        return
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
     time = now.strftime("%H:%M:%S")
