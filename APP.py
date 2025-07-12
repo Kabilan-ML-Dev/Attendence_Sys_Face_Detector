@@ -16,22 +16,33 @@ def initialize_csv():
             writer.writerow(["Name", "Date", "Time", "Status"])
         print("✅ CSV file initialized.")
 
-# Function to mark attendance
 def take_attendance():
     name = femod.predicted_label()  # This should return the predicted name (string)
     if not name:
-        print("⚠️ No face recognized.")
+        status_label.config(text="⚠️ No face recognized.")
         return
 
     now = datetime.now()
     date = now.strftime("%Y-%m-%d")
     time = now.strftime("%H:%M:%S")
 
-    with open(attd_file, mode='a', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow([name, date, time, "Present"])
-    
-    print(f"✅ Attendance marked for {name} at {time}.")
+    already_marked = False
+    if os.path.exists(attd_file):
+        with open(attd_file, mode='r') as f:
+            reader = csv.reader(f)
+            next(reader)  # Skip header
+            for row in reader:
+                if row[0] == name and row[1] == date:
+                    already_marked = True
+                    break
+
+    if already_marked:
+        status_label.config(text=f"⚠️ Attendance already marked for {name} today.")
+    else:
+        with open(attd_file, mode='a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([name, date, time, "Present"])
+        status_label.config(text=f"✅ Attendance marked for {name} at {time}.")
 
 # Initialize GUI
 m = tk.Tk()
@@ -42,6 +53,8 @@ a = Label(m, text="RKAS Industries Pvt Ltd.", font=("Helvetica", 24))
 a.pack()
 b = Label(m, text="Attendance System", font=("Helvetica", 18))
 b.pack()
+status_label = Label(m, text="", font=("Helvetica", 14), fg="blue")
+status_label.pack(pady=20)
 
 c = Button(m, text="Take Attendance", height=5, width=50,
            command=take_attendance, bg='gold1', fg='black')
